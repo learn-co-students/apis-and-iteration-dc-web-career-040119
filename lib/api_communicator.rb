@@ -2,18 +2,25 @@ require 'rest-client'
 require 'json'
 require 'pry'
 
-def get_character_movies_from_api(character_name)
 
+def parse_data
   response_string = RestClient.get('http://www.swapi.co/api/people/')
-  response_hash = JSON.parse(response_string)
+  JSON.parse(response_string)
+end
 
-  character_hash= response_hash["results"].find do |character_data |
-    character_data["name"] == character_name
+def get_character_data(character_name)
+  parse_data["results"].find do |character_data|
+    character_data["name"].downcase == character_name
   end
+end
 
-  film_arr = character_hash["films"]
+def get_character_movies(character_name)
+  character_data = get_character_data(character_name)
+  character_data["films"]
+end
 
-
+def get_movie_data(character_name)
+  film_arr = get_character_movies(character_name)
   film_arr.map do |film|
     film_url_response= RestClient.get(film)
     JSON.parse(film_url_response)
@@ -27,11 +34,6 @@ def print_movies(films)
 end
 
 def show_character_movies(character)
-  films = get_character_movies_from_api(character)
+  films = get_movie_data(character)
   print_movies(films)
 end
-
-## BONUS
-
-# that `get_character_movies_from_api` method is probably pretty long. Does it do more than one job?
-# can you split it up into helper methods?
