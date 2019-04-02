@@ -34,12 +34,12 @@ def print_movies(films)
   films.each do |film_url|
     response_hash["results"].each do |film|
       if film["url"] == film_url
-        titles << film["title"]
-       # binding.pry
+        titles << ("#{film["episode_id"]} - #{film["title"]}")
+        #binding.pry
       end 
     end 
   end 
-  puts titles
+  puts titles.sort
 end
 
 def show_character_movies(character)
