@@ -2,7 +2,8 @@ require 'rest-client'
 require 'json'
 require 'pry'
 
-def get_character_movies_from_api(character_name)
+
+def get_character_movie_urls_from_api(character_name)
   #make the web request
   response_string = RestClient.get('http://www.swapi.co/api/people/')
   response_hash = JSON.parse(response_string)
@@ -13,38 +14,39 @@ def get_character_movies_from_api(character_name)
       #binding.pry
     end 
   end 
-
-  # iterate over the response hash to find the collection of `films` for the given
-  #   `character`
-  # collect those film API urls, make a web request to each URL to get the info
-  #  for that film
-  # return value of this method should be collection of info about each film.
-  #  i.e. an array of hashes in which each hash reps a given film
-  # this collection will be the argument given to `print_movies`
-  #  and that method will do some nice presentation stuff like puts out a list
-  #  of movies by title. Have a play around with the puts with other info about a given film.
 end
 
-def print_movies(films)
-  # some iteration magic and puts out the movies in a nice list
+def get_character_movie_info_from_api(film_urls)
   response_string = RestClient.get('http://www.swapi.co/api/films/')
   response_hash = JSON.parse(response_string)
 
-  titles = []
-  films.each do |film_url|
+  film_info_hash = []
+  film_urls.each do |film_url|
     response_hash["results"].each do |film|
       if film["url"] == film_url
-        titles << ("#{film["episode_id"]} - #{film["title"]}")
+        film_info_hash << film
         #binding.pry
       end 
     end 
   end 
+  film_info_hash
+end 
+
+def print_movies(films)
+  # some iteration magic and puts out the movies in a nice list
+  titles = films.map do |film_info|
+    #binding.pry
+    "#{film_info["episode_id"]} - #{film_info["title"]}"
+  end 
+
   puts titles.sort
+
 end
 
 def show_character_movies(character)
-  films = get_character_movies_from_api(character)
-  print_movies(films)
+  film_urls = get_character_movie_urls_from_api(character)
+  film_info = get_character_movie_info_from_api(film_urls)
+  print_movies(film_info)
 end
 
 ## BONUS
