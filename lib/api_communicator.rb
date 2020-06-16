@@ -1,33 +1,45 @@
-require 'rest-client'
-require 'json'
-require 'pry'
+require "rest-client"
+require "json"
+require "pry"
 
-def get_character_movies_from_api(character_name)
-  #make the web request
-  response_string = RestClient.get('http://www.swapi.co/api/people/')
-  response_hash = JSON.parse(response_string)
-
-  # iterate over the response hash to find the collection of `films` for the given
-  #   `character`
-  # collect those film API urls, make a web request to each URL to get the info
-  #  for that film
-  # return value of this method should be collection of info about each film.
-  #  i.e. an array of hashes in which each hash reps a given film
-  # this collection will be the argument given to `print_movies`
-  #  and that method will do some nice presentation stuff like puts out a list
-  #  of movies by title. Have a play around with the puts with other info about a given film.
+def get_character_film_urls(character)
+  query_url = "http://www.swapi.co/api/people/"
+  loop do
+    response_string = RestClient.get(query_url)
+    response_hash = JSON.parse(response_string)
+    people_data = response_hash["results"]
+    people_data.each do |person|
+      if person["name"].downcase.start_with?(character)
+        return person["films"]
+      elsif response_hash["next"].nil?
+        return nil
+        break
+      else
+        query_url = response_hash["next"]
+      end
+    end
+  end
 end
 
-def print_movies(films)
-  # some iteration magic and puts out the movies in a nice list
+def get_film_titles(film_urls)
+  response_string = RestClient.get("http://www.swapi.co/api/films/")
+  response_hash = JSON.parse(response_string)
+  film_data = response_hash["results"]
+  titles = []
+  film_urls.each do |film_url|
+    film_data.each do |film|
+      titles << film["title"] if film["url"] == film_url
+    end
+  end
+  titles
 end
 
 def show_character_movies(character)
-  films = get_character_movies_from_api(character)
-  print_movies(films)
+  film_urls = get_character_film_urls(character)
+  if film_urls.nil?
+    puts "Error: could not find any characters with this name"
+  else
+    titles = get_film_titles(film_urls)
+    puts titles
+  end
 end
-
-## BONUS
-
-# that `get_character_movies_from_api` method is probably pretty long. Does it do more than one job?
-# can you split it up into helper methods?
